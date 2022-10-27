@@ -22,15 +22,14 @@ def level_1():
         clock.tick(60)
         display.fill((0,0,0))
         #Map
-        
+        tile_rects = map.draw_map(display)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
         #Movement of the player 
-        player.move()
+        player.move(tile_rects)
         #Blitting the player
         player.draw(display)
-        map.draw_map(display)
         #Blitting the display
         surf = pygame.transform.scale(display,(screen_width, screen_height))
         screen.blit(surf,(0,0))

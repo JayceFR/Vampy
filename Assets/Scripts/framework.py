@@ -1,17 +1,60 @@
+from turtle import speed
 import pygame
 
 class Player():
     def __init__(self, loc, width, height ) -> None:
         self.rect = pygame.rect.Rect(loc[0], loc[1], width, height)
         self.speed = 5
+        self.moving_right = False
+        self.moving_left = False
         self.gravity = 9.81
-    def move(self):
-        self.rect.y += self.gravity
+
+    def collision_test(self, tiles):
+        hitlist = []
+        for tile in tiles:
+            if self.rect.colliderect(tile):
+                hitlist.append(tile)
+        return hitlist
+
+    def collision_checker(self, tiles):
+        collision_types = {"top": False, "bottom": False, "right": False, "left": False}
+        self.rect.x += self.movement[0]
+        hit_list = self.collision_test(tiles)
+        for tile in hit_list:
+            if self.movement[0] > 0:
+                self.rect.right = tile.left
+                collision_types["right"] = True
+            elif self.movement[0] < 0:
+                self.rect.left = tile.right
+                collision_types["left"] = True
+        self.rect.y += self.movement[1]
+        hit_list = self.collision_test(tiles)
+        for tile in hit_list:
+            if self.movement[1] > 0:
+                self.rect.bottom = tile.top
+                collision_types["bottom"] = True
+            if self.movement[1] < 0:
+                self.rect.top = tile.bottom
+                collision_types["top"] = True
+        return collision_types
+
+    def move(self, tiles):
+        self.movement = [0,0]
+        if self.moving_right:
+            self.movement[0] += self.speed
+            self.moving_right = not self.moving_right
+        if self.moving_left:
+            self.movement[0] -= self.speed
+            self.moving_left = not self.moving_left
+        self.movement[1] += self.gravity
         key_pressed = pygame.key.get_pressed()
         if key_pressed[pygame.K_d]:
-            self.rect.x += self.speed
+            self.moving_right = True
         if key_pressed[pygame.K_a]:
-            self.rect.x -= self.speed
+            self.moving_left = True
+        if key_pressed[pygame.K_SPACE]:
+            self.jump = True
+        collision_type = self.collision_checker(tiles)
     def draw(self, display):
         pygame.draw.rect(display, (255,0,0), self.rect)
 
@@ -35,6 +78,7 @@ class Map():
         self.tile2 = tile2
     
     def draw_map(self, display):
+        tile_rects = []
         x = -1
         y = -1
         for row in self.map:
@@ -45,7 +89,10 @@ class Map():
                     display.blit(self.tile1, (x * 16 , y * 16))
                 if element == "2":
                     display.blit(self.tile2, (x * 16 , y * 16))
+                if element != "0":
+                    tile_rects.append(pygame.Rect(x*16,y*16,16,16))
             x = -1
+        return tile_rects
         
                 
 
