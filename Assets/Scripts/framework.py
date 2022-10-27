@@ -1,4 +1,5 @@
 from turtle import speed
+from winreg import KEY_CREATE_SUB_KEY
 import pygame
 
 class Player():
@@ -7,6 +8,9 @@ class Player():
         self.speed = 5
         self.moving_right = False
         self.moving_left = False
+        self.jump = False
+        self.jump_cooldown = 200
+        self.jump_last_update = 0
         self.gravity = 9.81
 
     def collision_test(self, tiles):
@@ -38,7 +42,7 @@ class Player():
                 collision_types["top"] = True
         return collision_types
 
-    def move(self, tiles):
+    def move(self, tiles, time):
         self.movement = [0,0]
         if self.moving_right:
             self.movement[0] += self.speed
@@ -46,13 +50,18 @@ class Player():
         if self.moving_left:
             self.movement[0] -= self.speed
             self.moving_left = not self.moving_left
+        if self.jump:
+            if time - self.jump_last_update > self.jump_cooldown:
+                self.movement[1] -= self.gravity * 6
+                self.jump_last_update = time
+            self.jump = False
         self.movement[1] += self.gravity
         key_pressed = pygame.key.get_pressed()
-        if key_pressed[pygame.K_d]:
+        if key_pressed[pygame.K_d] or key_pressed[pygame.K_RIGHT]:
             self.moving_right = True
-        if key_pressed[pygame.K_a]:
+        if key_pressed[pygame.K_a] or key_pressed[pygame.K_LEFT]:
             self.moving_left = True
-        if key_pressed[pygame.K_SPACE]:
+        if key_pressed[pygame.K_SPACE] or key_pressed[pygame.K_w] or key_pressed[pygame.K_UP]:
             self.jump = True
         collision_type = self.collision_checker(tiles)
     def draw(self, display):

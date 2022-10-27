@@ -19,6 +19,7 @@ def level_1():
     #Player 
     player = engine.Player([50,50], 16,16)
     while run:
+        time = pygame.time.get_ticks()
         clock.tick(60)
         display.fill((0,0,0))
         #Map
@@ -27,7 +28,7 @@ def level_1():
             if event.type == pygame.QUIT:
                 run = False
         #Movement of the player 
-        player.move(tile_rects)
+        player.move(tile_rects, time)
         #Blitting the player
         player.draw(display)
         #Blitting the display
