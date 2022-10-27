@@ -1,5 +1,4 @@
-from turtle import speed
-from winreg import KEY_CREATE_SUB_KEY
+import math
 import pygame
 
 class Player():
@@ -64,8 +63,12 @@ class Player():
         if key_pressed[pygame.K_SPACE] or key_pressed[pygame.K_w] or key_pressed[pygame.K_UP]:
             self.jump = True
         collision_type = self.collision_checker(tiles)
+
     def draw(self, display):
         pygame.draw.rect(display, (255,0,0), self.rect)
+
+    def get_rect(self):
+        return self.rect
 
 class Map():
     def read_map(self, map_loc):
@@ -102,6 +105,35 @@ class Map():
                     tile_rects.append(pygame.Rect(x*16,y*16,16,16))
             x = -1
         return tile_rects
-        
+
+class Projectile():
+    def __init__(self, s_width, s_height, pos, width, height, speed, player_rect, m_pos, angle) -> None:
+        self.s_width = s_width
+        self.s_height = s_height
+        self.rect = pygame.rect.Rect(pos[0], pos[1], width, height)
+        self.speed = speed
+        self.alive = True
+        self.player_rect = player_rect
+        self.m_pos = m_pos
+        self.angle = angle
+        if self.player_rect.y > self.m_pos[1]:
+            if self.player_rect.x > self.m_pos[0]:
+                self.angle = 180 - self.angle
+        else:
+            if self.player_rect.x > self.m_pos[0]:
+                self.angle = 180 + self.angle
+            else:
+                self.angle = 270 + (90 - self.angle)
+    def move(self):
+        if self.rect.x < 0 or self.rect.x > self.s_width or self.rect.y < 0 or self.rect.y > self.s_height:
+            self.alive = False
+        self.rect.x += math.cos(math.radians(self.angle)) * self.speed
+        self.rect.y -= math.sin(math.radians(self.angle)) * self.speed
+    
+    def get_rect(self):
+        return self.rect
+
+    def draw(self, display):
+        pygame.draw.rect(display, (0,255,0), self.rect)
                 
 
