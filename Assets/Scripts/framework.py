@@ -77,6 +77,57 @@ class Player():
 
     def get_rect(self):
         return self.rect
+
+class Vampires():
+    def __init__(self, spawn_loc, vampire_move_cooldown) -> None:
+        self.rect = pygame.rect.Rect(spawn_loc[0], spawn_loc[1], 32, 32)
+        self.vampire_move_cooldown = vampire_move_cooldown
+        self.vampire_move_last_update = 0
+        self.display_x = 0
+        self.display_y = 0
+        self.alive = True
+        self.speed = 2
+        self.angle = 0
+        
+    def move(self, player_loc, time, display, scroll):
+        point = [player_loc[0], self.rect.y - scroll[1]]
+        l1 = math.sqrt(math.pow((point[0] - player_loc[0]), 2) + math.pow((point[1] - player_loc[1]), 2))
+        l2 = math.sqrt(math.pow((point[1] - (self.rect.y - scroll[1])),2) + math.pow((point[0] - (self.rect.x - scroll[0])),2))
+        angle = math.atan2(l1,l2)
+        angle = math.degrees(angle)
+        if self.rect.y - scroll[1] > player_loc[1]:
+            #The vampire is bottom of the player 
+            if self.rect.x - scroll[0] > player_loc[0]:
+                #The vampire is to the right 
+                angle = 180 - angle
+        else:
+            #The vampire is top of the player 
+            if self.rect.x - scroll[0] > player_loc[0]:
+                #The vampire is to the top right 
+                angle = 180 + angle
+            else:
+                    #The vampire is to the top left
+                angle = 360 - angle
+        self.rect.x += math.cos(math.radians(angle)) * self.speed
+        self.rect.y -= math.sin(math.radians(angle)) * self.speed
+        self.angle = angle
+
+    def draw(self, display, scroll):
+        if self.alive:
+            self.display_x = self.rect.x
+            self.display_y = self.rect.y
+            self.rect.x = self.rect.x - scroll[0]
+            self.rect.y = self.rect.y - scroll[1]
+            pygame.draw.rect(display, (255,0,0), self.rect)
+            self.rect.x = self.display_x
+            self.rect.y = self.display_y
+
+    def get_rect(self):
+        return self.rect
+    
+    def get_angle(self):
+        return self.angle
+
 #Map 
 class Map():
     def __init__(self, map_loc, tile1):
@@ -91,6 +142,7 @@ class Map():
     
     def blit_map(self, window, scroll):
         tile_rects = []
+        vamp_spawn_loc = []
         x = 0
         y = 0 
         for row in self.map:
@@ -98,11 +150,13 @@ class Map():
             for element in row:
                 if element == "1":
                     window.blit(self.tile1, (x * 16 - scroll[0], y * 16 - scroll[1]) )
+                if element == "v":
+                    vamp_spawn_loc.append(list((x*16,y*16)))
                 if element != "1":
                     tile_rects.append(pygame.rect.Rect(x*16, y*16, 16,16))
                 x += 1
             y += 1
-        return tile_rects
+        return tile_rects, vamp_spawn_loc
 #Projectiles
 class Projectile():
     def __init__(self, s_width, s_height, pos, width, height, speed, player_rect, m_pos, angle) -> None:
@@ -133,3 +187,15 @@ class Projectile():
 
     def draw(self, display):
         pygame.draw.rect(display, (0,0,255), self.rect)
+
+class VampireSpit():
+    def __init__(self, screen_w, screen_h, width, height, speed, start_pos, angle) -> None:
+        self.screen_w = screen_w
+        self.screen_h = screen_h
+        self.rect = pygame.rect.Rect(start_pos[0], start_pos[1], width, height)
+        self.start_pos  = start_pos
+        self.angle = angle
+
+    def move(self):
+        self.rect.x += math.cos(math.radians(self.angle)) * self.speed
+        self.rect.y -= math.sin(math.radians(self.angle)) * self.speed
