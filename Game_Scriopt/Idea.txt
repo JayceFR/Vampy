@@ -1,0 +1,7 @@
+Game Idea
+The player is a vampire. His main aim is to infect as many people as he can. He can only walk around in the night with 
+his own vamp vision. During the day 
+The player is a human. During the night he is being haunted by a group of vampires. He can only kill the vampires with 
+the shades of the moon which he gets in the day, when he kills the vampire they drop moon flowers. In the night, 
+the vampires haunt the human by shooting their green blood. The game changes from Day to Night.
+During the day, the player should collect the moon flowers which are dropped by the vampire. 

@@ -1,16 +1,24 @@
-import math
 import pygame
-
+import math
 class Player():
-    def __init__(self, loc, width, height ) -> None:
-        self.rect = pygame.rect.Rect(loc[0], loc[1], width, height)
+    def __init__(self, rect_size):
+        self.rect = pygame.rect.Rect(50,50,rect_size[0], rect_size[1])
+        self.display_x = 0
+        self.display_y = 0 
         self.speed = 5
         self.moving_right = False
         self.moving_left = False
-        self.jump = False
-        self.jump_cooldown = 200
-        self.jump_last_update = 0
-        self.gravity = 9.81
+        self.moving_up = False
+        self.moving_down = False
+
+    def draw(self, window, scroll):
+        self.display_x = self.rect.x
+        self.display_y = self.rect.y
+        self.rect.x = self.rect.x - scroll[0]
+        self.rect.y = self.rect.y - scroll[1]
+        pygame.draw.rect(window, (255,255,0), self.rect)
+        self.rect.x = self.display_x
+        self.rect.y = self.display_y
 
     def collision_test(self, tiles):
         hitlist = []
@@ -18,7 +26,7 @@ class Player():
             if self.rect.colliderect(tile):
                 hitlist.append(tile)
         return hitlist
-
+    
     def collision_checker(self, tiles):
         collision_types = {"top": False, "bottom": False, "right": False, "left": False}
         self.rect.x += self.movement[0]
@@ -40,8 +48,8 @@ class Player():
                 self.rect.top = tile.bottom
                 collision_types["top"] = True
         return collision_types
-
-    def move(self, tiles, time):
+    
+    def move(self, tiles):
         self.movement = [0,0]
         if self.moving_right:
             self.movement[0] += self.speed
@@ -49,63 +57,53 @@ class Player():
         if self.moving_left:
             self.movement[0] -= self.speed
             self.moving_left = not self.moving_left
-        if self.jump:
-            if time - self.jump_last_update > self.jump_cooldown:
-                self.movement[1] -= self.gravity * 6
-                self.jump_last_update = time
-            self.jump = False
-        self.movement[1] += self.gravity
-        key_pressed = pygame.key.get_pressed()
-        if key_pressed[pygame.K_d] or key_pressed[pygame.K_RIGHT]:
-            self.moving_right = True
-        if key_pressed[pygame.K_a] or key_pressed[pygame.K_LEFT]:
-            self.moving_left = True
-        if key_pressed[pygame.K_SPACE] or key_pressed[pygame.K_w] or key_pressed[pygame.K_UP]:
-            self.jump = True
-        collision_type = self.collision_checker(tiles)
+        if self.moving_up:
+            self.movement[1] -= self.speed
+            self.moving_up = not self.moving_up
+        if self.moving_down:
+            self.movement[1] += self.speed
+            self.moving_down = not self.moving_down
 
-    def draw(self, display):
-        pygame.draw.rect(display, (255,0,0), self.rect)
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w]:
+            self.moving_up = True
+        if keys[pygame.K_s]:
+            self.moving_down = True
+        if keys[pygame.K_a]:
+            self.moving_left = True
+        if keys[pygame.K_d]:
+            self.moving_right = True
+        collision_type = self.collision_checker(tiles)
 
     def get_rect(self):
         return self.rect
-
+#Map 
 class Map():
-    def read_map(self, map_loc):
-        f = open(map_loc, "r")
-        map = f.read()
-        f.close()
-        map = map.split("\n")
-        final_map = []
-        for row in map:
-            rows = []
-            for element in row:
-                rows.append(element)
-            final_map.append(rows)
-        return final_map
-
-    def __init__(self, map_loc, tile1, tile2) -> None:
-        self.map = self.read_map(map_loc)
+    def __init__(self, map_loc, tile1):
+        self.map = [] 
         self.tile1 = tile1
-        self.tile2 = tile2
+        f = open(map_loc, "r")
+        data = f.read()
+        f.close()
+        data = data.split("\n")
+        for row in data:
+            self.map.append(list(row))
     
-    def draw_map(self, display):
+    def blit_map(self, window, scroll):
         tile_rects = []
-        x = -1
-        y = -1
+        x = 0
+        y = 0 
         for row in self.map:
-            y += 1
+            x = 0 
             for element in row:
-                x += 1
                 if element == "1":
-                    display.blit(self.tile1, (x * 16 , y * 16))
-                if element == "2":
-                    display.blit(self.tile2, (x * 16 , y * 16))
-                if element != "0":
-                    tile_rects.append(pygame.Rect(x*16,y*16,16,16))
-            x = -1
+                    window.blit(self.tile1, (x * 16 - scroll[0], y * 16 - scroll[1]) )
+                if element != "1":
+                    tile_rects.append(pygame.rect.Rect(x*16, y*16, 16,16))
+                x += 1
+            y += 1
         return tile_rects
-
+#Projectiles
 class Projectile():
     def __init__(self, s_width, s_height, pos, width, height, speed, player_rect, m_pos, angle) -> None:
         self.s_width = s_width
@@ -134,6 +132,4 @@ class Projectile():
         return self.rect
 
     def draw(self, display):
-        pygame.draw.rect(display, (0,255,0), self.rect)
-                
-
+        pygame.draw.rect(display, (0,0,255), self.rect)
