@@ -19,7 +19,7 @@ def draw_health_bar(health, x, y):
 def create_flowers(flower_images):
     flowers = []
     for x in range(20):
-        flowers.append(engine.Flowers([random.randint(50,1000)/2, random.randint(50,600)/2], random.randint(0,3), flower_images))
+        flowers.append(engine.Flowers([random.randint(100,2000)/2, random.randint(100,1200)/2], random.randint(0,3), flower_images))
     return flowers
 
 def get_correct_variety():
@@ -38,8 +38,9 @@ def game_loop():
     clock = pygame.time.Clock()
     #Loading images
     tile1 = pygame.image.load("Assets/Tiles/tile1.png").convert_alpha()
+    tile2 = pygame.image.load("Assets/Tiles/tile2.png").convert_alpha()
     #Loading the map 
-    map = engine.Map("Assets/Maps/map.txt", tile1)
+    map = engine.Map("Assets/Maps/map.txt", tile1, tile2)
     #Player animation loading 
     player_idle_spritesheet = pygame.image.load("Assets/Sprites/player_idle.png").convert_alpha()
     player_idle_animation = []
@@ -79,7 +80,7 @@ def game_loop():
     click = False
     #Vampire settings
     vamp_spawn_loc = []
-    vamp_spawn_cooldown = 15000
+    vamp_spawn_cooldown = 10000
     vamp_spawn_last_update = 0 
     vampires = []
     vampire_animation_spritesheet = pygame.image.load("Assets/Sprites/vampire_run.png").convert_alpha()
@@ -88,7 +89,9 @@ def game_loop():
         vampire_run_animation.append(get_image(vampire_animation_spritesheet,x,32,32,1.5))
     #day and night 
     day = False
-    night_cooldown = 120000
+    day_cooldown = 20000
+    night_cooldown = 20000
+    day_to_night_last_update = 0
     change_to_day = 0 
     #Main Game Loop
     while run:
@@ -96,16 +99,20 @@ def game_loop():
         time = pygame.time.get_ticks()
         display.fill((0,0,0))
         #Map Blitting
-        tiles, vamp_spawn_loc = map.blit_map(display, scroll)
+        tiles, vamp_spawn_loc = map.blit_map(display, scroll, day)
         #Calculating Scroll
         true_scroll[0] += (player.get_rect().x - true_scroll[0] - 262) / 20
         true_scroll[1] += (player.get_rect().y - true_scroll[1] - 162) / 20
         scroll = true_scroll.copy()
         scroll[0] = int(scroll[0])
         scroll[1] = int(scroll[1])
+             
         if not day:
             #Switchinbg the day load
-            change_to_day = 0
+            if time - day_to_night_last_update > night_cooldown:
+                change_to_day = 0
+                day_to_night_last_update = time
+                day = True
             #Creating vampires
             if time - vamp_spawn_last_update > vamp_spawn_cooldown:
                 for loc in vamp_spawn_loc:
@@ -133,16 +140,18 @@ def game_loop():
             m_pos.append(mx)
             m_pos.append(my)
             #Getting the 3rd vertex of the triangle
-            point = (m_pos[0], player.get_rect().y - scroll[1])
+            point = (m_pos[0], player.get_rect().y + 36 - scroll[1])
             #Calculating distance between the points
-            l1 = math.sqrt(math.pow((point[1] - (player.get_rect().y - scroll[1])), 2) + math.pow((point[0] - (player.get_rect().x - scroll[0])), 2))
+            l1 = math.sqrt(math.pow((point[1] - (player.get_rect().y + 36 - scroll[1])), 2) + math.pow((point[0] - (player.get_rect().x + 28 - scroll[0])), 2))
             l2 = math.sqrt(math.pow((m_pos[1] - point[1]),2) + math.pow((m_pos[0] - point[0]),2))
             #Calculating the angle between them
             angle = math.atan2(l2,l1)
             angle = math.degrees(angle)
+            #pygame.draw.line(display,(255,0,0), m_pos, point)
+            #pygame.draw.line(display, (255,0,255), point, ((player.get_rect().x + 28 - scroll[0]), (player.get_rect().y + 36 - scroll[1])))
             if click:
                 #Creating moon_bullets object
-                moon_bullets.append(engine.Projectile(screen_w, screen_h, [player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]], 4, 4,15, pygame.rect.Rect(player.get_rect().x - scroll[0], player.get_rect().y-scroll[1], 16,16), m_pos, angle))
+                moon_bullets.append(engine.Projectile(screen_w, screen_h, [player.get_rect().x + 28 - scroll[0], player.get_rect().y + 36 - scroll[1]], 4, 4,15, pygame.rect.Rect(player.get_rect().x + 28 - scroll[0], player.get_rect().y + 36 -scroll[1], 16,16), m_pos, angle, bullet))
                 click = not click
             #Check for collision
             for moon in moon_bullets:
@@ -156,6 +165,11 @@ def game_loop():
                     vamp.get_rect().x = vamp_x
                     vamp.get_rect().y = vamp_y
         if day:
+            #Checking if it is night yet
+            if time - day_to_night_last_update > day_cooldown:
+                day_to_night_last_update = time
+                vampires.clear()
+                day = False
             #Creting flowers
             if change_to_day == 0:
                 flowers = create_flowers(flower_images)
@@ -179,18 +193,25 @@ def game_loop():
             player.move(tiles)
             player.draw(display, scroll, time)
             #Gun Transformation 
-            if player.get_rect().y > m_pos[1]:
-                if player.get_rect().x > m_pos[0]:
-                    angle = 180 - angle
-            else:
-                if player.get_rect().x > m_pos[0]:
-                    angle = 180 + angle
-                else:
-                    angle = 270 + (90 - angle)
+            #if player.get_rect().y > m_pos[1]:
+            #    if player.get_rect().x > m_pos[0]:
+            #        angle = 180 - angle
+            #else:
+            #    if player.get_rect().x > m_pos[0]:
+            #        angle = 180 + angle
+            #    else:
+            #        angle = 270 + (90 - angle)
+            gun_angle = angle
+            if my - (player.get_rect().y - scroll[1]) > 0:
+                gun_angle = 0 - gun_angle
             gun_copy = gun.copy()
-            gun_copy = pygame.transform.rotate(gun_copy, angle)
-            #Gun Blitting
-            display.blit(gun_copy,(player.get_rect().x + 16 - scroll[0], player.get_rect().y + 28 - scroll[1]))
+            gun_copy = pygame.transform.rotate(gun_copy, gun_angle)
+            if mx > player.get_rect().x - scroll[0]:
+                display.blit(gun_copy,((player.get_rect().x + 28 - scroll[0]) - gun_copy.get_width()/2, (player.get_rect().y + 36 - scroll[1]) - gun_copy.get_height()/2))
+            else:
+                flip = gun_copy.copy()
+                flip = pygame.transform.flip(flip, True, False)
+                display.blit(flip,((player.get_rect().x + 28 - scroll[0]) - gun_copy.get_width()/2, (player.get_rect().y + 36 - scroll[1]) - gun_copy.get_height()/2))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False

@@ -4,7 +4,7 @@ import math
 #1 -> run 
 class Player():
     def __init__(self, rect_size, player_idle__animation, player_run_animation):
-        self.rect = pygame.rect.Rect(50,50,rect_size[0], rect_size[1])
+        self.rect = pygame.rect.Rect(290,50,rect_size[0], rect_size[1])
         self.display_x = 0
         self.display_y = 0 
         self.life = 100
@@ -223,9 +223,10 @@ class Vampires():
 
 #Map 
 class Map():
-    def __init__(self, map_loc, tile1):
+    def __init__(self, map_loc, tile1, tile2):
         self.map = [] 
         self.tile1 = tile1
+        self.tile2 = tile2
         #Day Night Converter
         self.tile1.set_alpha(255)
         f = open(map_loc, "r")
@@ -235,8 +236,14 @@ class Map():
         for row in data:
             self.map.append(list(row))
     
-    def blit_map(self, window, scroll):
+    def blit_map(self, window, scroll, day):
         tile_rects = []
+        if day:
+            self.tile1.set_alpha(255)
+            self.tile2.set_alpha(255)
+        else:
+            self.tile1.set_alpha(90)
+            self.tile2.set_alpha(90)
         vamp_spawn_loc = []
         x = 0
         y = 0 
@@ -245,6 +252,8 @@ class Map():
             for element in row:
                 if element == "1":
                     window.blit(self.tile1, (x * 16 - scroll[0], y * 16 - scroll[1]) )
+                if element == "x":
+                    window.blit(self.tile2, (x*16 - scroll[0], y * 16 - scroll[1]))
                 if element == "v":
                     vamp_spawn_loc.append(list((x*16,y*16)))
                 if element != "1":
@@ -254,7 +263,7 @@ class Map():
         return tile_rects, vamp_spawn_loc
 #Projectiles
 class Projectile():
-    def __init__(self, s_width, s_height, pos, width, height, speed, player_rect, m_pos, angle) -> None:
+    def __init__(self, s_width, s_height, pos, width, height, speed, player_rect, m_pos, angle, bullet_img) -> None:
         self.s_width = s_width
         self.s_height = s_height
         self.rect = pygame.rect.Rect(pos[0], pos[1], width, height)
@@ -263,6 +272,7 @@ class Projectile():
         self.player_rect = player_rect
         self.m_pos = m_pos
         self.angle = angle
+        self.bullet_img = pygame.transform.scale(bullet_img, (bullet_img.get_width()//2, bullet_img.get_height()//2))
         if self.player_rect.y > self.m_pos[1]:
             if self.player_rect.x > self.m_pos[0]:
                 self.angle = 180 - self.angle
@@ -281,7 +291,10 @@ class Projectile():
         return self.rect
 
     def draw(self, display):
-        pygame.draw.rect(display, (0,0,255), self.rect)
+        bullet_img_copy = self.bullet_img.copy()
+        bullet_img_copy = pygame.transform.rotate(bullet_img_copy, self.angle)
+        display.blit(bullet_img_copy, self.rect)
+        #pygame.draw.rect(display, (0,0,255), self.rect)
 
 class VampireSpit():
     def __init__(self, screen_w, screen_h, width, height, speed, start_pos, angle) -> None:
