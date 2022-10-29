@@ -1,23 +1,57 @@
 import pygame
 import math
+#0 -> idle
+#1 -> run 
 class Player():
-    def __init__(self, rect_size):
+    def __init__(self, rect_size, player_idle__animation, player_run_animation):
         self.rect = pygame.rect.Rect(50,50,rect_size[0], rect_size[1])
         self.display_x = 0
         self.display_y = 0 
         self.life = 100
-        self.speed = 5
+        self.speed = 4
         self.moving_right = False
         self.moving_left = False
         self.moving_up = False
         self.moving_down = False
+        self.idle = True
+        self.player_idle_animation = player_idle__animation
+        self.player_run_animation = player_run_animation
+        #animation settings
+        self.frame = 0
+        self.state = 0
+        self.facing_right = True
+        self.animation_cooldown = 200
+        self.animation_last_update = 0
 
-    def draw(self, window, scroll):
+    def draw(self, window, scroll, time):
         self.display_x = self.rect.x
         self.display_y = self.rect.y
         self.rect.x = self.rect.x - scroll[0]
         self.rect.y = self.rect.y - scroll[1]
-        pygame.draw.rect(window, (255,255,0), self.rect)
+        if self.facing_right:
+            if self.idle:
+                window.blit(self.player_idle_animation[self.frame], self.rect)
+            if not self.idle:
+                window.blit(self.player_run_animation[self.frame], self.rect)
+        if not self.facing_right:
+            if self.idle:
+                flip = self.player_idle_animation[self.frame].copy()
+                flip = pygame.transform.flip(flip, True, False)
+                window.blit(flip, self.rect)
+            if not self.idle:
+                flip = self.player_run_animation[self.frame].copy()
+                flip = pygame.transform.flip(flip, True,False)
+                window.blit(flip, self.rect)
+        if time - self.animation_last_update > self.animation_cooldown:
+            if self.idle:
+                if self.frame + 1 >= len(self.player_idle_animation):
+                    self.frame = 0 
+            if not self.idle:
+                if self.frame + 1 >= len(self.player_run_animation):
+                    self.frame = 0 
+            self.frame += 1
+            self.animation_last_update = time
+        #pygame.draw.rect(window, (255,255,0), self.rect)
         self.rect.x = self.display_x
         self.rect.y = self.display_y
 
@@ -72,15 +106,31 @@ class Player():
             self.moving_down = True
         if keys[pygame.K_a]:
             self.moving_left = True
+            if self.state == 0:
+                self.frame = 0 
+                self.state = 1
+            self.idle = False
+            self.facing_right = False
         if keys[pygame.K_d]:
             self.moving_right = True
+            if self.state == 0:
+                self.frame = 0
+                self.state = 1 
+            self.idle = False
+            self.facing_right = True
+        #Checking for idle 
+        if not self.moving_left and not self.moving_right:
+            self.idle = True
+            if self.state == 1:
+                self.frame = 0 
+                self.state = 0
         collision_type = self.collision_checker(tiles)
 
     def get_rect(self):
         return self.rect
 
 class Vampires():
-    def __init__(self, spawn_loc, vampire_move_cooldown, vamp_spit_cooldown) -> None:
+    def __init__(self, spawn_loc, vampire_move_cooldown, vamp_spit_cooldown, vamp_animation) -> None:
         self.rect = pygame.rect.Rect(spawn_loc[0], spawn_loc[1], 32, 32)
         self.vampire_move_cooldown = vampire_move_cooldown
         self.vampire_move_last_update = 0
@@ -91,9 +141,15 @@ class Vampires():
         self.vamp_spit_last_update = 0 
         self.speed = 2
         self.angle = 0
+        self.vamp_animation = vamp_animation
+        self.facing_right = True
+        self.frame = 0 
+        self.vamp_animation_cooldown = 200
+        self.vamp_animation_last_update = 0 
         self.spit = []
         
     def move(self, player_loc, time, display, scroll, player):
+        self.facing_right = True
         point = [player_loc[0], self.rect.y - scroll[1]]
         l1 = math.sqrt(math.pow((point[0] - player_loc[0]), 2) + math.pow((point[1] - player_loc[1]), 2))
         l2 = math.sqrt(math.pow((point[1] - (self.rect.y - scroll[1])),2) + math.pow((point[0] - (self.rect.x - scroll[0])),2))
@@ -103,11 +159,13 @@ class Vampires():
             #The vampire is bottom of the player 
             if self.rect.x - scroll[0] > player_loc[0]:
                 #The vampire is to the right 
+                self.facing_right = False
                 angle = 180 - angle
         else:
             #The vampire is top of the player 
             if self.rect.x - scroll[0] > player_loc[0]:
                 #The vampire is to the top right 
+                self.facing_right = False
                 angle = 180 + angle
             else:
                     #The vampire is to the top left
@@ -134,15 +192,26 @@ class Vampires():
             player.get_rect().x = player_x
             player.get_rect().y = player_y
 
-    def draw(self, display, scroll):
+    def draw(self, display, scroll, time):
         if self.alive:
             self.display_x = self.rect.x
             self.display_y = self.rect.y
             self.rect.x = self.rect.x - scroll[0]
             self.rect.y = self.rect.y - scroll[1]
-            pygame.draw.rect(display, (255,0,0), self.rect)
+            #pygame.draw.rect(display, (255,0,0), self.rect)
+            if self.facing_right:
+                display.blit(self.vamp_animation[self.frame], self.rect)
+            else:
+                flip = self.vamp_animation[self.frame].copy()
+                flip = pygame.transform.flip(flip, True, False)
+                display.blit(flip, self.rect)
             self.rect.x = self.display_x
             self.rect.y = self.display_y
+            if time - self.vamp_animation_last_update > self.vamp_animation_cooldown:
+                if self.frame + 1 >= len(self.vamp_animation):
+                    self.frame = 0
+                else:
+                    self.frame += 1
         else:
             del self
 
@@ -235,3 +304,31 @@ class VampireSpit():
     
     def get_rect(self):
         return self.rect
+
+class Flowers():
+    #Kate rocks 
+    #0 -> orange
+    #1 -> yellow 
+    #2 -> pink
+    #3 -> blue
+    def __init__(self, spawn_loc, variety, flower_images) -> None:
+        self.rect = pygame.rect.Rect(spawn_loc[0], spawn_loc[1], 16, 16)
+        self.variety = variety
+        self.display_x = 0 
+        self.display_y = 0
+        self.flower_images = flower_images
+
+    def draw(self, display, scroll):
+        self.display_x = self.rect.x
+        self.display_y = self.rect.y
+        self.rect.x -= scroll[0]
+        self.rect.y -= scroll[1]
+        display.blit(self.flower_images[self.variety], self.rect)
+        self.rect.x = self.display_x
+        self.rect.y = self.display_y
+    
+    def get_rect(self):
+        return self.rect
+
+    def get_variety(self):
+        return self.variety
