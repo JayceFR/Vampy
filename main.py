@@ -40,6 +40,8 @@ def game_loop():
     #Game Variables
     run = True
     clock = pygame.time.Clock()
+    num_of_nights_survived = 0 
+    game_launch = 0 
     #Loading images
     tile1 = pygame.image.load("Assets/Tiles/tile1.png").convert_alpha()
     tile2 = pygame.image.load("Assets/Tiles/tile2.png").convert_alpha()
@@ -100,6 +102,41 @@ def game_loop():
     sparks = []
     #Fonts
     font = pygame.font.Font("Assets/Fonts/jayce.ttf", 30)
+    font2 = pygame.font.Font("Assets/Fonts/jayce.ttf", 15)
+    font3 = pygame.font.Font("Assets/Fonts/jayce.ttf", 50)
+    #Texts
+    text1 = "Dodge The Blood Spit By The Vampires"
+    text2 = "The Blood Is Lethal. Enough Blood Can Turn You Into One Of Them!"
+    text3 = "W-A-S-D or Arrow keys for movement"
+    text4 = "Left Click to shoot And Kill The Vampires."
+    text5 = "Wow! You have survived the night!"
+    text6 = "Collect The Correct Random Flower to Gain Health"
+    #Music
+    shoot_sound = pygame.mixer.Sound("Assets/Music/Shoot.wav")
+    shoot_sound.set_volume(0.5)
+    vampire_death_sound = pygame.mixer.Sound("Assets/Music/vampire_death_song.wav")
+    vampire_death_sound.set_volume(0.5)
+    flower_pickup = pygame.mixer.Sound("Assets/Music/flower.wav")
+    flower_pickup.set_volume(0.5)
+    pygame.mixer.music.load("Assets/Music/Vampy_Theme_Music.wav")
+    pygame.mixer.music.set_volume(0.8)
+    pygame.mixer.music.play(-1)
+    #After death variables 
+    after_death = 0 
+    j_boy = pygame.image.load("Assets/Sprites/J_Boy.png").convert_alpha()
+    j_boy.set_colorkey((255,255,255))
+    j_boy_vamp = pygame.image.load("Assets/Sprites/J_Vamp_Boy.png").convert_alpha()
+    j_boy_vamp.set_colorkey((255,255,255))
+    j_boy_skin = [j_boy, j_boy_vamp]
+    skin = 0 
+    scale_size = 1
+    scale_last_update = 0
+    scale_cooldown = 1000
+    death_j_boy_cooldown = 4000
+    death_display_x = 250
+    death_display_y = 150
+    death_j_boy_last_update = 0
+    change_to_vamp = 0
     #Main Game Loop
     while run:
         clock.tick(60)
@@ -116,28 +153,40 @@ def game_loop():
              
         if not day:
             #Switchinbg the day load
-            if time - day_to_night_last_update > night_cooldown:
-                change_to_day = 0
-                day_to_night_last_update = time
-                day = True
-            text = "TIME LEFT FOR DAY: " + str(((day_cooldown + day_to_night_last_update) - time)//1000)
-            draw_text(text, font, (255,255,255), 10, 250, display)
+            if player.life > 0:
+                if time - day_to_night_last_update > night_cooldown:
+                    num_of_nights_survived += 1
+                    change_to_day = 0
+                    day_to_night_last_update = time
+                    day = True
+                text = "TIME LEFT FOR DAY: " + str(((day_cooldown + day_to_night_last_update) - time)//1000)
+                draw_text(text, font, (255,255,255), 10, 250, display)
+            if game_launch == 0:
+                if time - day_to_night_last_update < 9000:
+                    draw_text(text1, font2, (255,0,0), 130,80, display)
+                    draw_text(text2, font2, (255,0,0), 60, 100, display)
+                    draw_text(text3, font2, (255,0,255), 130, 120, display)
+                    draw_text(text4, font2, (255,0,255), 125, 140, display)
+                else:
+                    game_launch = 1
             #Creating vampires
             if time - vamp_spawn_last_update > vamp_spawn_cooldown:
                 for loc in vamp_spawn_loc:
                     vampires.append(engine.Vampires(loc,0,random.randint(1500,4000), vampire_run_animation))
                 vamp_spawn_last_update = time
             #Moving and blitting Vampires
-            for v, vamp in sorted(enumerate(vampires), reverse=True):
-                vamp.move([player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]], time, display, scroll, player)
-                vamp.draw(display, scroll, time)
-                if not vamp.alive:
-                    #Spark effect on vampires
-                    for x in range(20):
-                        sparks.append(engine.Spark([vamp.get_rect().x - scroll[0], vamp.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
-                                                          (64, 12, 92), 1, 2))
-                    #Deleting vamp from list
-                    vampires.pop(v)
+            if player.life > 0:
+                for v, vamp in sorted(enumerate(vampires), reverse=True):
+                    vamp.move([player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]], time, display, scroll, player)
+                    vamp.draw(display, scroll, time)
+                    if not vamp.alive:
+                        #Spark effect on vampires
+                        for x in range(20):
+                            sparks.append(engine.Spark([vamp.get_rect().x - scroll[0], vamp.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                            (64, 12, 92), 1, 2))
+                        #Deleting vamp from list
+                        vampire_death_sound.play()
+                        vampires.pop(v)
                                                           
             #Bliitng the moon bullets
             if moon_bullets != []:
@@ -166,6 +215,8 @@ def game_loop():
             #pygame.draw.line(display, (255,0,255), point, ((player.get_rect().x + 28 - scroll[0]), (player.get_rect().y + 36 - scroll[1])))
             if click:
                 #Creating moon_bullets object
+                if player.life > 0:
+                    shoot_sound.play()
                 moon_bullets.append(engine.Projectile(screen_w, screen_h, [player.get_rect().x + 28 - scroll[0], player.get_rect().y + 36 - scroll[1]], 4, 4,15, pygame.rect.Rect(player.get_rect().x + 28 - scroll[0], player.get_rect().y + 36 -scroll[1], 16,16), m_pos, angle, bullet))
                 click = not click
             #Check for collision
@@ -181,43 +232,54 @@ def game_loop():
                     vamp.get_rect().y = vamp_y
         if day:
             #Checking if it is night yet
-            if time - day_to_night_last_update > day_cooldown:
-                day_to_night_last_update = time
-                vampires.clear()
-                day = False
-            text = "TIME LEFT FOR NIGHT: " + str(((day_cooldown + day_to_night_last_update) - time)//1000)
-            draw_text(text, font, (255,0,0), 10, 250, display)
+            if player.life > 0:
+                if time - day_to_night_last_update > day_cooldown:
+                    day_to_night_last_update = time
+                    vampires.clear()
+                    day = False
+                text = "TIME LEFT FOR NIGHT: " + str(((day_cooldown + day_to_night_last_update) - time)//1000)
+                draw_text(text, font, (255,0,0), 10, 250, display)
+            if game_launch == 1:
+                if time - day_to_night_last_update < 9000:
+                    draw_text(text5, font2, (0,0,255), 130, 80, display)
+                    draw_text(text6, font2, (0,0,255), 100, 100, display)
+                else:
+                    game_launch = 2
             #Creting flowers
             if change_to_day == 0:
                 flowers = create_flowers(flower_images)
                 correct_variety = get_correct_variety()
                 change_to_day = -1
-            for f, flower in sorted(enumerate(flowers), reverse= True):
-                flower.draw(display, scroll)
-                if flower.get_rect().colliderect(player.get_rect()):
-                    if flower.variety == correct_variety:
-                        if player.life + 5 > 100:
-                            player.life = 100
+            if player.life > 0:
+                for f, flower in sorted(enumerate(flowers), reverse= True):
+                    flower.draw(display, scroll)
+                    if flower.get_rect().colliderect(player.get_rect()):
+                        flower_pickup.play()
+                        if flower.variety == correct_variety:
+                            if player.life + 5 > 100:
+                                player.life = 100
+                            else:
+                                player.life += 5
                         else:
-                            player.life += 5
-                    else:
-                        player.life -= 10
-                    #Creating sparks
-                    if flower.variety == 0:
-                        sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
-                                                          (64, 12, 92), 1, 2))
-                    if flower.variety == 1:
-                        sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
-                                                          (64, 12, 92), 1, 2))
-                    if flower.variety == 2:
-                        sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
-                                                          (64, 12, 92), 1, 2))
-                    if flower.variety == 3:
-                        sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
-                                                          (64, 12, 92), 1, 2))
-                    flowers.pop(f)
+                            player.life -= 10
+                        #Creating sparks
+                        if flower.variety == 0:
+                            sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                            (64, 12, 92), 1, 2))
+                        if flower.variety == 1:
+                            sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                            (64, 12, 92), 1, 2))
+                        if flower.variety == 2:
+                            sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                            (64, 12, 92), 1, 2))
+                        if flower.variety == 3:
+                            sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                            (64, 12, 92), 1, 2))
+                        flowers.pop(f)
         #Printing the health bar
         draw_health_bar(player.life,10,10)
+        nights_survived = "NIGHTS SURVIVED: " + str(num_of_nights_survived)
+        draw_text(nights_survived, font, (180,0,0), 240, 0, display)
         #Sparks Blitting
         if sparks != []:
             for i, spark in sorted(enumerate(sparks), reverse=True):
@@ -250,6 +312,34 @@ def game_loop():
                     flip = gun_copy.copy()
                     flip = pygame.transform.flip(flip, True, False)
                     display.blit(flip,((player.get_rect().x + 28 - scroll[0]) - gun_copy.get_width()/2, (player.get_rect().y + 36 - scroll[1]) - gun_copy.get_height()/2))
+        if player.life <= 0:
+            if after_death == 0:
+                death_j_boy_last_update = time
+                scale_last_update = time
+                after_death = -1
+
+            if time - death_j_boy_last_update < death_j_boy_cooldown:
+                display_j = j_boy_skin[skin].copy()
+                display_j = pygame.transform.scale(display_j, (display_j.get_width() * scale_size, display_j.get_height() * scale_size))
+                display.blit(display_j, (death_display_x, death_display_y))
+                if change_to_vamp == 0:
+                    if time - scale_last_update > scale_cooldown:
+                        scale_size += 0.5
+                        scale_last_update = time
+            else:
+                if change_to_vamp == 0:
+                    death_j_boy_last_update = time
+                    skin = 1
+                    death_display_x -= 10
+                    change_to_vamp = -1
+                else:
+                    display.fill((0,0,0))
+                    draw_text("VAMPY", font3, (64,12,94), 180, 20, display)
+                    draw_text("GAME OVER", font3, (255,0,0), 130,80, display )
+                    draw_text("A Game By JayceFR (jayjan)", font, (255,255,255), 70, 140, display )
+                    draw_text("Art : Janish Bhithi Jason", font, (0,0,255), 90, 170,display )
+                    draw_text("A Game Created Within 3 Days ", font, (0,255,0), 55, 250, display )
+            
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
