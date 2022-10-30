@@ -337,7 +337,7 @@ def game_loop():
                     draw_text("VAMPY", font3, (64,12,94), 180, 20, display)
                     draw_text("GAME OVER", font3, (255,0,0), 130,80, display )
                     draw_text("A Game By JayceFR (jayjan)", font, (255,255,255), 70, 140, display )
-                    draw_text("Art : Janish Bhithi Jason", font, (0,0,255), 90, 170,display )
+                    draw_text("Art And Music : Janish Jason", font, (0,0,255), 70, 170,display )
                     draw_text("A Game Created Within 3 Days ", font, (0,255,0), 55, 250, display )
             
         for event in pygame.event.get():

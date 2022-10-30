@@ -100,18 +100,18 @@ class Player():
             self.moving_down = not self.moving_down
 
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.moving_up = True
-        if keys[pygame.K_s]:
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
             self.moving_down = True
-        if keys[pygame.K_a]:
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
             self.moving_left = True
             if self.state == 0:
                 self.frame = 0 
                 self.state = 1
             self.idle = False
             self.facing_right = False
-        if keys[pygame.K_d]:
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             self.moving_right = True
             if self.state == 0:
                 self.frame = 0
