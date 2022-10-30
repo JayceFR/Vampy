@@ -43,16 +43,16 @@ def game_loop():
     num_of_nights_survived = 0 
     game_launch = 0 
     #Loading images
-    tile1 = pygame.image.load("Assets/Tiles/tile1.png").convert_alpha()
-    tile2 = pygame.image.load("Assets/Tiles/tile2.png").convert_alpha()
+    tile1 = pygame.image.load("./Assets/Tiles/tile1.png").convert_alpha()
+    tile2 = pygame.image.load("./Assets/Tiles/tile2.png").convert_alpha()
     #Loading the map 
-    map = engine.Map("Assets/Maps/map.txt", tile1, tile2)
+    map = engine.Map("./Assets/Maps/map.txt", tile1, tile2)
     #Player animation loading 
-    player_idle_spritesheet = pygame.image.load("Assets/Sprites/player_idle.png").convert_alpha()
+    player_idle_spritesheet = pygame.image.load("./Assets/Sprites/player_idle.png").convert_alpha()
     player_idle_animation = []
     for x in range(4):
         player_idle_animation.append(get_image(player_idle_spritesheet,x,32,32,1.5))
-    player_run_spritesheet = pygame.image.load("Assets/Sprites/player_run.png").convert_alpha()
+    player_run_spritesheet = pygame.image.load("./Assets/Sprites/player_run.png").convert_alpha()
     player_run_animation = []
     for x in range(6):
         player_run_animation.append(get_image(player_run_spritesheet, x, 32, 32, 1.5))
@@ -60,24 +60,24 @@ def game_loop():
     true_scroll = [0,0]
     scroll = [0,0]
     #Flowers 
-    blue_flower = pygame.image.load("Assets/Sprites/blue_flower.png").convert_alpha()
+    blue_flower = pygame.image.load("./Assets/Sprites/blue_flower.png").convert_alpha()
     blue_flower = pygame.transform.scale(blue_flower, (32,32))
     blue_flower.set_colorkey((255,255,255))
-    orange_flower = pygame.image.load("Assets/Sprites/orange_flower.png").convert_alpha()
+    orange_flower = pygame.image.load("./Assets/Sprites/orange_flower.png").convert_alpha()
     orange_flower = pygame.transform.scale(orange_flower, (32,32))
     orange_flower.set_colorkey((255,255,255))
-    pink_flower = pygame.image.load("Assets/Sprites/pink_flower.png").convert_alpha()
+    pink_flower = pygame.image.load("./Assets/Sprites/pink_flower.png").convert_alpha()
     pink_flower = pygame.transform.scale(pink_flower, (32,32))
     pink_flower.set_colorkey((255,255,255))
-    yellow_flower = pygame.image.load("Assets/Sprites/yellow_flower.png").convert_alpha()
+    yellow_flower = pygame.image.load("./Assets/Sprites/yellow_flower.png").convert_alpha()
     yellow_flower = pygame.transform.scale(yellow_flower, (32,32))
     yellow_flower.set_colorkey((255,255,255))
     flower_images = [orange_flower, yellow_flower, pink_flower, blue_flower]
     flowers = create_flowers(flower_images)
     #gun 
-    gun = pygame.image.load("Assets/Sprites/gun.png").convert_alpha()
+    gun = pygame.image.load("./Assets/Sprites/gun.png").convert_alpha()
     gun.set_colorkey((255,255,255))
-    bullet = pygame.image.load("Assets/Sprites/bullet.png").convert_alpha()
+    bullet = pygame.image.load("./Assets/Sprites/bullet.png").convert_alpha()
     bullet.set_colorkey((255,255,255))
     #Moon Bullets
     moon_bullets = []
@@ -88,7 +88,7 @@ def game_loop():
     vamp_spawn_cooldown = 10000
     vamp_spawn_last_update = 0 
     vampires = []
-    vampire_animation_spritesheet = pygame.image.load("Assets/Sprites/vampire_run.png").convert_alpha()
+    vampire_animation_spritesheet = pygame.image.load("./Assets/Sprites/vampire_run.png").convert_alpha()
     vampire_run_animation = []
     for x in range(6):
         vampire_run_animation.append(get_image(vampire_animation_spritesheet,x,32,32,1.5))
@@ -101,9 +101,9 @@ def game_loop():
     #Sparks
     sparks = []
     #Fonts
-    font = pygame.font.Font("Assets/Fonts/jayce.ttf", 30)
-    font2 = pygame.font.Font("Assets/Fonts/jayce.ttf", 15)
-    font3 = pygame.font.Font("Assets/Fonts/jayce.ttf", 50)
+    font = pygame.font.Font("./Assets/Fonts/jayce.ttf", 30)
+    font2 = pygame.font.Font("./Assets/Fonts/jayce.ttf", 15)
+    font3 = pygame.font.Font("./Assets/Fonts/jayce.ttf", 50)
     #Texts
     text1 = "Dodge The Blood Spit By The Vampires"
     text2 = "The Blood Is Lethal. Enough Blood Can Turn You Into One Of Them!"
@@ -112,20 +112,20 @@ def game_loop():
     text5 = "Wow! You have survived the night!"
     text6 = "Collect The Correct Random Flower to Gain Health"
     #Music
-    shoot_sound = pygame.mixer.Sound("Assets/Music/Shoot.wav")
+    shoot_sound = pygame.mixer.Sound("./Assets/Music/Shoot.wav")
     shoot_sound.set_volume(0.5)
-    vampire_death_sound = pygame.mixer.Sound("Assets/Music/vampire_death_song.wav")
+    vampire_death_sound = pygame.mixer.Sound("./Assets/Music/vampire_death_song.wav")
     vampire_death_sound.set_volume(0.5)
-    flower_pickup = pygame.mixer.Sound("Assets/Music/flower.wav")
+    flower_pickup = pygame.mixer.Sound("./Assets/Music/flower.wav")
     flower_pickup.set_volume(0.5)
-    pygame.mixer.music.load("Assets/Music/Vampy_Theme_Music.wav")
+    pygame.mixer.music.load("./Assets/Music/Vampy_Theme_Music.wav")
     pygame.mixer.music.set_volume(0.8)
     pygame.mixer.music.play(-1)
     #After death variables 
     after_death = 0 
-    j_boy = pygame.image.load("Assets/Sprites/J_Boy.png").convert_alpha()
+    j_boy = pygame.image.load("./Assets/Sprites/J_Boy.png").convert_alpha()
     j_boy.set_colorkey((255,255,255))
-    j_boy_vamp = pygame.image.load("Assets/Sprites/J_Vamp_Boy.png").convert_alpha()
+    j_boy_vamp = pygame.image.load("./Assets/Sprites/J_Vamp_Boy.png").convert_alpha()
     j_boy_vamp.set_colorkey((255,255,255))
     j_boy_skin = [j_boy, j_boy_vamp]
     skin = 0 
