@@ -32,6 +32,10 @@ def get_image(sheet, frame, width, height, scale):
     image.set_colorkey((255, 255, 255))
     return image
 
+def draw_text(text, font, text_col, x, y, display):
+    img = font.render(text, True, text_col)
+    display.blit(img, (x, y))
+
 def game_loop():
     #Game Variables
     run = True
@@ -92,6 +96,10 @@ def game_loop():
     night_cooldown = 20000
     day_to_night_last_update = 0
     change_to_day = 0 
+    #Sparks
+    sparks = []
+    #Fonts
+    font = pygame.font.Font("Assets/Fonts/jayce.ttf", 30)
     #Main Game Loop
     while run:
         clock.tick(60)
@@ -112,6 +120,8 @@ def game_loop():
                 change_to_day = 0
                 day_to_night_last_update = time
                 day = True
+            text = "TIME LEFT FOR DAY: " + str(((day_cooldown + day_to_night_last_update) - time)//1000)
+            draw_text(text, font, (255,255,255), 10, 250, display)
             #Creating vampires
             if time - vamp_spawn_last_update > vamp_spawn_cooldown:
                 for loc in vamp_spawn_loc:
@@ -122,7 +132,13 @@ def game_loop():
                 vamp.move([player.get_rect().x - scroll[0], player.get_rect().y - scroll[1]], time, display, scroll, player)
                 vamp.draw(display, scroll, time)
                 if not vamp.alive:
+                    #Spark effect on vampires
+                    for x in range(20):
+                        sparks.append(engine.Spark([vamp.get_rect().x - scroll[0], vamp.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                          (64, 12, 92), 1, 2))
+                    #Deleting vamp from list
                     vampires.pop(v)
+                                                          
             #Bliitng the moon bullets
             if moon_bullets != []:
                 for s, moon in sorted(enumerate(moon_bullets), reverse=True):
@@ -169,6 +185,8 @@ def game_loop():
                 day_to_night_last_update = time
                 vampires.clear()
                 day = False
+            text = "TIME LEFT FOR NIGHT: " + str(((day_cooldown + day_to_night_last_update) - time)//1000)
+            draw_text(text, font, (255,0,0), 10, 250, display)
             #Creting flowers
             if change_to_day == 0:
                 flowers = create_flowers(flower_images)
@@ -184,9 +202,29 @@ def game_loop():
                             player.life += 5
                     else:
                         player.life -= 10
+                    #Creating sparks
+                    if flower.variety == 0:
+                        sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                          (64, 12, 92), 1, 2))
+                    if flower.variety == 1:
+                        sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                          (64, 12, 92), 1, 2))
+                    if flower.variety == 2:
+                        sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                          (64, 12, 92), 1, 2))
+                    if flower.variety == 3:
+                        sparks.append(engine.Spark([flower.get_rect().x - scroll[0], flower.get_rect().y - scroll[1]],math.radians(random.randint(0, 360)), random.randint(2, 4),
+                                                          (64, 12, 92), 1, 2))
                     flowers.pop(f)
         #Printing the health bar
         draw_health_bar(player.life,10,10)
+        #Sparks Blitting
+        if sparks != []:
+            for i, spark in sorted(enumerate(sparks), reverse=True):
+                spark.move(1)
+                spark.draw(display)
+                if not spark.alive:
+                    sparks.pop(i)
         #Player Blitting
         if player.life > 0:
             player.move(tiles)
@@ -217,7 +255,8 @@ def game_loop():
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    click = True
+                    if player.life > 0:
+                        click = True
         surf = pygame.transform.scale(display, (screen_w, screen_h))
         window.blit(surf, (0, 0))
         pygame.display.update()
