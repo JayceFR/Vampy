@@ -4,7 +4,7 @@ import math
 #1 -> run 
 class Player():
     def __init__(self, rect_size, player_idle__animation, player_run_animation):
-        self.rect = pygame.rect.Rect(290,50,rect_size[0], rect_size[1])
+        self.rect = pygame.rect.Rect(290,250,rect_size[0], rect_size[1])
         self.display_x = 0
         self.display_y = 0 
         self.life = 100
@@ -255,6 +255,7 @@ class Map():
                 if element == "x":
                     window.blit(self.tile2, (x*16 - scroll[0], y * 16 - scroll[1]))
                 if element == "v":
+                    window.blit(self.tile2, (x*16 - scroll[0], y * 16 - scroll[1]))
                     vamp_spawn_loc.append(list((x*16,y*16)))
                 if element != "1":
                     tile_rects.append(pygame.rect.Rect(x*16, y*16, 16,16))

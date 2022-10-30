@@ -18,8 +18,8 @@ def draw_health_bar(health, x, y):
 
 def create_flowers(flower_images):
     flowers = []
-    for x in range(20):
-        flowers.append(engine.Flowers([random.randint(100,2000)/2, random.randint(100,1200)/2], random.randint(0,3), flower_images))
+    for x in range(50):
+        flowers.append(engine.Flowers([random.randint(580,2400)/2, random.randint(500,1190)/2], random.randint(0,3), flower_images))
     return flowers
 
 def get_correct_variety():
@@ -51,7 +51,6 @@ def game_loop():
     for x in range(6):
         player_run_animation.append(get_image(player_run_spritesheet, x, 32, 32, 1.5))
     player = engine.Player([32,32], player_idle_animation, player_run_animation)
-    print(player_idle_animation)
     true_scroll = [0,0]
     scroll = [0,0]
     #Flowers 
@@ -201,17 +200,18 @@ def game_loop():
             #        angle = 180 + angle
             #    else:
             #        angle = 270 + (90 - angle)
-            gun_angle = angle
-            if my - (player.get_rect().y - scroll[1]) > 0:
-                gun_angle = 0 - gun_angle
-            gun_copy = gun.copy()
-            gun_copy = pygame.transform.rotate(gun_copy, gun_angle)
-            if mx > player.get_rect().x - scroll[0]:
-                display.blit(gun_copy,((player.get_rect().x + 28 - scroll[0]) - gun_copy.get_width()/2, (player.get_rect().y + 36 - scroll[1]) - gun_copy.get_height()/2))
-            else:
-                flip = gun_copy.copy()
-                flip = pygame.transform.flip(flip, True, False)
-                display.blit(flip,((player.get_rect().x + 28 - scroll[0]) - gun_copy.get_width()/2, (player.get_rect().y + 36 - scroll[1]) - gun_copy.get_height()/2))
+            if not day:
+                gun_angle = angle
+                if my - (player.get_rect().y - scroll[1]) > 0:
+                    gun_angle = 0 - gun_angle
+                gun_copy = gun.copy()
+                gun_copy = pygame.transform.rotate(gun_copy, gun_angle)
+                if mx > player.get_rect().x - scroll[0]:
+                    display.blit(gun_copy,((player.get_rect().x + 28 - scroll[0]) - gun_copy.get_width()/2, (player.get_rect().y + 36 - scroll[1]) - gun_copy.get_height()/2))
+                else:
+                    flip = gun_copy.copy()
+                    flip = pygame.transform.flip(flip, True, False)
+                    display.blit(flip,((player.get_rect().x + 28 - scroll[0]) - gun_copy.get_width()/2, (player.get_rect().y + 36 - scroll[1]) - gun_copy.get_height()/2))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
