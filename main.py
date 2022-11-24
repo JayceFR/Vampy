@@ -1,6 +1,7 @@
 import pygame 
 import math
 import random
+import Assets.Scripts.weather as Weather
 import Assets.Scripts.framework as engine
 pygame.init()
 #Display settings 
@@ -83,6 +84,8 @@ def game_loop():
     moon_bullets = []
     #Mouse Settings
     click = False
+    #Weather settings
+    weather = Weather.weather(screen_w//2,screen_h//2)
     #Vampire settings
     vamp_spawn_loc = []
     vamp_spawn_cooldown = 10000
@@ -150,7 +153,7 @@ def game_loop():
         scroll = true_scroll.copy()
         scroll[0] = int(scroll[0])
         scroll[1] = int(scroll[1])
-             
+        weather.chain_call(time, display)
         if not day:
             #Switchinbg the day load
             if player.life > 0:
