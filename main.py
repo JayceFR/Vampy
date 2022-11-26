@@ -46,6 +46,8 @@ def game_loop():
     #Loading images
     tile1 = pygame.image.load("./Assets/Tiles/tile1.png").convert_alpha()
     tile2 = pygame.image.load("./Assets/Tiles/tile2.png").convert_alpha()
+    particle_img = pygame.image.load("./Assets/Sprites/particle.png").convert_alpha()
+    particle_img.set_colorkey((255,255,255))
     #Loading the map 
     map = engine.Map("./Assets/Maps/map.txt", tile1, tile2)
     #Player animation loading 
@@ -85,7 +87,7 @@ def game_loop():
     #Mouse Settings
     click = False
     #Weather settings
-    weather = Weather.weather(screen_w//2,screen_h//2)
+    weather = Weather.weather(screen_w//2,screen_h//2, particle_img)
     #Vampire settings
     vamp_spawn_loc = []
     vamp_spawn_cooldown = 10000
