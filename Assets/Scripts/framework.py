@@ -175,7 +175,7 @@ class Vampires():
         self.angle = angle
         if time - self.vamp_spit_last_update > self.vamp_spit_cooldown:
             #Spit
-            self.spit.append(VampireSpit(1000,600,3,3,5,[self.rect.x - scroll[0], self.rect.y - scroll[1]], self.angle))
+            self.spit.append(VampireSpit(1000,600,3,3,3,[self.rect.x - scroll[0], self.rect.y - scroll[1]], self.angle))
             self.vamp_spit_last_update = time
         if self.spit != []:
             player_x = player.get_rect().x
@@ -187,6 +187,7 @@ class Vampires():
                 spi.draw(display)
                 if spi.get_rect().colliderect(player.get_rect()):
                     player.life -= 5
+                    self.spit.pop(s)
                 if not spi.alive:
                     self.spit.pop(s)
             player.get_rect().x = player_x
@@ -314,7 +315,10 @@ class VampireSpit():
         self.rect.y -= math.sin(math.radians(self.angle)) * self.speed
         
     def draw(self, display):
-        pygame.draw.rect(display,(255,0,0), self.rect)
+        # pygame.draw.rect(display,(255,0,0), self.rect)
+        pygame.draw.circle(display, (255,255,255), (self.rect.x, self.rect.y), self.rect.width * 1.2)
+        pygame.draw.circle(display, (250,0,0), (self.rect.x, self.rect.y), self.rect.width)
+        
     
     def get_rect(self):
         return self.rect
